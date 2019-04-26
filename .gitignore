@@ -1,0 +1,6 @@
+# Cache for Python byte code
+__pycache__/
+*.py[cod]
+
+# Cache for mypy type analysis
+.mypy_cache/
