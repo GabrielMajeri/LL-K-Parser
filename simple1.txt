@@ -1,0 +1,19 @@
+# This is a simple grammar file used to test the input grammar parser.
+# These lines are comments.
+
+# Blank lines are ignored.
+
+    S -> Bb
+ S ->   Cd
+
+B-> aB
+B ->λ
+
+
+S -> Cd
+S ->   Cd
+
+
+X -> aXYZb
+Y -> Yb
+Y ->
