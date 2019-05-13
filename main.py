@@ -2,7 +2,7 @@
 
 from abc import ABC
 import re
-from typing import Set, List
+from typing import Set, Tuple
 
 class Symbol(ABC):
     """Represents a token from the grammar's vocabulary.
@@ -39,10 +39,13 @@ class Terminal(Symbol):
         super().__init__(symbol)
 
 
+SententialForm = Tuple[Symbol, ...]
+Word = Tuple[Terminal, ...]
+
 class Production:
     __slots__ = ['start', 'end']
 
-    def __init__(self, start: Nonterminal, end: List[Symbol]) -> None:
+    def __init__(self, start: Nonterminal, end: SententialForm) -> None:
         self.start = start
         self.end = end
 
@@ -78,26 +81,48 @@ class Grammar:
         print("Productions:", self.prod_by_nonterminal)
 
 
-SententialForm = List[Symbol]
-Word = List[Terminal]
-
 def concat(a: Set[Word], b: Set[Word]) -> Set[Word]:
     """Performs concatenation of two languages."""
+    if not a:
+        return b
+    if not b:
+        return a
     return {u + v for u in a for v in b}
 
 class LLParser:
     def __init__(self, grammar: Grammar) -> None:
         self.grammar = grammar
 
-    def first(self, k: int, w: SententialForm) -> Set[Word]:
+    def _first_impl(self, k: int, w: SententialForm, visited: Set[Nonterminal]) -> Set[Word]:
         if k == 0:
             return set()
         else:
+            # We were given a lambda production
+            if len(w) == 0:
+                return set()
+
             first_symbol = w[0]
+
             if isinstance(first_symbol, Terminal):
-                return concat({[first_symbol]}, self.first(k - 1, w[1:]))
+                return concat({(first_symbol,)}, self._first_impl(k - 1, w[1:], visited))
+            elif isinstance(first_symbol, Nonterminal):
+                # Avoid infinite recursion
+                if first_symbol in visited:
+                    return set()
+
+                visited.add(first_symbol)
+
+                productions = self.grammar.prod_by_nonterminal[first_symbol]
+                firsts: Set[Word] = set()
+                for production in productions:
+                    firsts |= self._first_impl(k, production.end, visited)
+                return firsts
             else:
                 return NotImplemented
+
+    def first(self, k: int, w: SententialForm) -> Set[Word]:
+        visited: Set[Nonterminal] = set()
+        return self._first_impl(k, w, visited)
 
 
 INPUT_FILE = 'simple1.txt'
@@ -132,6 +157,11 @@ with open(INPUT_FILE, 'r') as f:
                 terminals.add(symbol)
             end.append(symbol)
 
-        productions.add(Production(start, end))
+        productions.add(Production(start, tuple(end)))
 
 grammar = Grammar(nonterminals, terminals, productions)
+parser = LLParser(grammar)
+
+for nonterminal in nonterminals:
+    firsts = parser.first(1, (nonterminal,))
+    print(f"{nonterminal} => {firsts}")

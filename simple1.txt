@@ -8,7 +8,7 @@
 
 B-> aB
 B ->λ
-
+B -> cY
 
 S -> Cd
 S ->   Cd
