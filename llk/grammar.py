@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pathlib import Path
 import re
 from typing import Set
 
@@ -45,7 +44,7 @@ class Grammar:
         print("Productions:", self.prod_by_nonterminal)
 
     @staticmethod
-    def read(path: Path) -> Grammar:
+    def read(path: str) -> Grammar:
         nonterminals = set()
         terminals = set()
         productions = set()
