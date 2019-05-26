@@ -25,15 +25,24 @@ class Symbol(ABC):
         return hash(self.symbol)
 
 class Nonterminal(Symbol):
+    """Nonterminal symbol which can still be expanded.
+
+    The production rules of a grammar determine to which sentential forms this
+    symbols expands to.
+    """
+
     def __init__(self, symbol: str) -> None:
         assert symbol.isupper(), 'Nonterminals should be uppercase'
         super().__init__(symbol)
 
 
 class Terminal(Symbol):
-    def __init__(self, symbol: str) -> None:
-        assert symbol.islower(), 'Terminals should be lowercase'
-        super().__init__(symbol)
+    """Terminal symbol which cannot be derived further.
+
+    Usually represents a printable character.
+    """
 
 SententialForm = Tuple[Symbol, ...]
 Word = Tuple[Terminal, ...]
+LAMBDA: Word = tuple()
+END: Symbol = Terminal('$')

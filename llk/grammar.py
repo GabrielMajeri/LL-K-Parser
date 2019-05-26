@@ -1,8 +1,8 @@
 from __future__ import annotations
 import re
-from typing import Set
+from typing import Dict, List, Set
 
-from . import Symbol, Terminal, Nonterminal, SententialForm, Word
+from . import Symbol, Terminal, Nonterminal, SententialForm, Word, LAMBDA
 
 class Production:
     __slots__ = ['start', 'end']
@@ -10,6 +10,15 @@ class Production:
     def __init__(self, start: Nonterminal, end: SententialForm) -> None:
         self.start = start
         self.end = end
+
+    def __contains__(self, symbol: Symbol) -> bool:
+        return symbol in self.end
+
+    def after_symbol(self, symbol: Symbol) -> SententialForm:
+        if symbol not in self:
+            return LAMBDA
+        idx = self.end.index(symbol)
+        return self.end[(idx + 1):]
 
     def __repr__(self) -> str:
         rhs = ''.join(map(str, self.end)) if self.end else 'λ'
@@ -19,17 +28,25 @@ PRODUCTION_REGEX = re.compile(r'(?P<start>[A-Z])\W*->\W*(?P<end>[A-z]*)')
 
 class Grammar:
     vocabulary: Set[Symbol]
+    nonterms: Set[Nonterminal]
+    terms: Set[Terminal]
+    sentence_symbol: Nonterminal
+    prods: Set[Production]
+    prod_by_nonterminal: Dict[Nonterminal, List[Production]]
 
     def __init__(
-        self,
-        nonterminals: Set[Nonterminal],
-        terminals: Set[Terminal],
-        productions: Set[Production],
+            self,
+            nonterminals: Set[Nonterminal],
+            terminals: Set[Terminal],
+            productions: Set[Production],
     ) -> None:
         self.vocabulary = nonterminals | terminals
         self.nonterms = nonterminals
         self.terms = terminals
         self.prods = productions
+
+        self.sentence_symbol = Nonterminal('S')
+        assert self.sentence_symbol in nonterminals
 
         # Group productions by the nonterminal which generates them
         self.prod_by_nonterminal = {
@@ -38,10 +55,6 @@ class Grammar:
             ]
             for nonterminal in nonterminals
         }
-
-        print("Nonterminals:", nonterminals)
-        print("Terminals:", terminals)
-        print("Productions:", self.prod_by_nonterminal)
 
     @staticmethod
     def read(path: str) -> Grammar:
@@ -76,3 +89,12 @@ class Grammar:
                 productions.add(Production(start, tuple(end)))
 
         return Grammar(nonterminals, terminals, productions)
+
+    def __repr__(self) -> str:
+        return f"Gramar({repr(self.nonterms)}, {repr(self.terms)}, {repr(self.sentence_symbol)}, {repr(self.prods)})"
+
+    def __str__(self) -> str:
+        return ("Grammar:\n"
+        f"- Nonterminals: {self.nonterms}\n"
+        f"- Terminals: {self.terms}\n"
+        f"- Productions: {self.prod_by_nonterminal}\n")
