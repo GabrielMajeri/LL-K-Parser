@@ -45,4 +45,4 @@ class Terminal(Symbol):
 SententialForm = Tuple[Symbol, ...]
 Word = Tuple[Terminal, ...]
 LAMBDA: Word = tuple()
-END: Symbol = Terminal('$')
+END: Terminal = Terminal('$')
