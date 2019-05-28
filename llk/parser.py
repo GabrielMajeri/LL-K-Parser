@@ -3,6 +3,9 @@ from itertools import combinations
 from typing import Dict, List, Set
 
 class LLParser:
+    """Implements a left-to-right, leftmost derivation parser for
+    an arbitrary context-free grammar."""
+
     grammar: Grammar
     k: int
     look_up: Dict[Nonterminal, Dict[Word, Production]]
@@ -22,6 +25,8 @@ class LLParser:
             self.look_up[nonterm] = table
 
     def parse(self, word: str) -> bool:
+        """Determines if a word can be produced by the grammar"""
+
         w = tuple(map(lambda ch: Terminal(ch), word))
 
         padding = (END, ) * self.k
@@ -86,6 +91,8 @@ class LLParser:
         return NotImplemented
 
     def _first(self, k: int, w: SententialForm) -> Set[Word]:
+        """Determines the first k terminals which can be derived from a given
+        sentential form."""
         visited: Set[Nonterminal] = set()
         return self._first_impl(k, w, visited)
 
@@ -113,10 +120,14 @@ class LLParser:
         return follows
 
     def _follow(self, k: int, nt: Nonterminal) -> Set[Word]:
+        """Determines the first k characters which can appear after a given nonterminal."""
         visited: Set[Nonterminal] = set()
         return self._follow_impl(k, nt, visited)
 
     def _look_ahead(self, k: int, p: Production) -> Set[Word]:
+        """Determines the k characters we need to look ahead to uniquely identify
+        this production."""
+
         follows = self._follow(k, p.start)
 
         look_aheads: Set[Word] = set()
@@ -125,6 +136,10 @@ class LLParser:
         return look_aheads
 
     def _find_k(self) -> int:
+        """Determines the smallest value of k for this grammar; that is,
+        it determines how many characters we need to look ahead to uniquely
+        choose a production."""
+
         if all(map(lambda prods: len(prods) == 1, self.grammar.prod_by_nonterminal.values())):
             return 0
 
@@ -132,6 +147,7 @@ class LLParser:
         done = False
 
         while not done:
+            print(k)
             done = True
             for nonterm in self.grammar.nonterms:
                 for prod_a, prod_b in combinations(self.grammar.prod_by_nonterminal[nonterm], 2):

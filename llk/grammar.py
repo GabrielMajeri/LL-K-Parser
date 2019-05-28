@@ -5,6 +5,8 @@ from typing import Dict, List, Set
 from . import Symbol, Terminal, Nonterminal, SententialForm, Word, LAMBDA
 
 class Production:
+    """Production rule describing how a nonterminal can be rewritten"""
+
     __slots__ = ['start', 'end']
 
     def __init__(self, start: Nonterminal, end: SententialForm) -> None:
@@ -12,9 +14,11 @@ class Production:
         self.end = end
 
     def __contains__(self, symbol: Symbol) -> bool:
+        """Checks if a symbol is produced by this rule."""
         return symbol in self.end
 
     def after_symbol(self, symbol: Symbol) -> SententialForm:
+        """Determine the part of the production which follows the symbol."""
         if symbol not in self:
             return LAMBDA
         idx = self.end.index(symbol)
@@ -33,6 +37,13 @@ class Grammar:
     sentence_symbol: Nonterminal
     prods: Set[Production]
     prod_by_nonterminal: Dict[Nonterminal, List[Production]]
+
+    """Context-free grammar consisting of a 4-tuple (nonterminals, terminals,
+    sentence symbol and productions).
+
+    Also has a dictionary for fast look-up of the productions of
+    a given nonterminal symbol
+    """
 
     def __init__(
             self,
@@ -58,6 +69,8 @@ class Grammar:
 
     @staticmethod
     def read(path: str) -> Grammar:
+        """Reads a grammar from a file"""
+
         nonterminals = set()
         terminals = set()
         productions = set()
